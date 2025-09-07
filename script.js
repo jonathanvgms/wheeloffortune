@@ -3,6 +3,30 @@ console.log('Script cargado correctamente');
 // Mostrar estado inicial al cargar
 document.addEventListener('DOMContentLoaded', function() {
     mostrarEstadoInicial();
+    
+    // Configurar el manejo del archivo
+    document.getElementById('archivoPersonas').addEventListener('change', function(e) {
+        const archivo = e.target.files[0];
+        if (archivo && archivo.type === 'text/plain') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contenido = e.target.result;
+                const textarea = document.getElementById('personas');
+                textarea.value = contenido.trim();
+                
+                // Mostrar información del archivo cargado
+                document.getElementById('nombreArchivo').textContent = `Archivo cargado: ${archivo.name}`;
+                document.getElementById('archivoInfo').style.display = 'block';
+                
+                // Limpiar el input file después de cargar
+                document.getElementById('archivoPersonas').value = '';
+            };
+            reader.readAsText(archivo);
+        } else if (archivo) {
+            alert('Por favor selecciona un archivo de texto (.txt)');
+            e.target.value = '';
+        }
+    });
 });
 
 document.getElementById('groupForm').addEventListener('submit', function(e) {

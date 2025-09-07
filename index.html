@@ -14,9 +14,6 @@
         <!-- Panel izquierdo: Configuración -->
         <div class="col-md-4 col-lg-3">
             <div class="card shadow h-100 d-flex flex-column">
-                <div class="card-header text-center">
-                    <h5 class="mb-0">Configuración</h5>
-                </div>
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <form id="groupForm" autocomplete="off" class="flex-grow-1 d-flex flex-column">
                         <div class="mb-3 flex-grow-1 d-flex flex-column">
@@ -24,12 +21,21 @@
                             <textarea id="personas" required class="form-control flex-grow-1" style="resize:none;min-height:200px;"></textarea>
                         </div>
                         <div class="mb-3">
+                            <label for="archivoPersonas" class="form-label">O cargar desde archivo de texto</label>
+                            <input type="file" id="archivoPersonas" accept=".txt" class="form-control">
+                            <div class="form-text">Selecciona un archivo .txt con una persona por línea</div>
+                            <div id="archivoInfo" class="mt-2 text-success fw-bold" style="display:none;">
+                                <i class="fas fa-check-circle me-1"></i>
+                                <span id="nombreArchivo"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <label for="numGrupos" class="form-label">Cantidad de grupos</label>
-                            <input type="number" id="numGrupos" min="1" value="2" class="form-control">
+                            <input type="number" id="numGrupos" min="1" value="6" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="personasPorGrupo" class="form-label">Personas por grupo</label>
-                            <input type="number" id="personasPorGrupo" min="1" value="2" class="form-control">
+                            <input type="number" id="personasPorGrupo" min="1" value="3" class="form-control">
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mt-auto">Generar Grupos</button>
                     </form>
@@ -40,12 +46,6 @@
         <!-- Panel derecho: Resultados -->
         <div class="col-md-8 col-lg-9">
             <div class="card shadow h-100 d-flex flex-column">
-                <div class="card-header text-center">
-                    <h5 class="mb-0">Resultados</h5>
-                    <button id="exportarBtn" class="btn btn-success btn-sm mt-2" style="display:none;" onclick="exportarImagen()">
-                        📷 Exportar como Imagen
-                    </button>
-                </div>
                 <div class="card-body flex-grow-1 d-flex flex-column overflow-auto position-relative">
                     
                     <div id="animacionIntriga" class="hidden text-center position-absolute w-100 h-100 d-flex align-items-center justify-content-center bg-white" style="top:0;left:0;z-index:10;">
@@ -57,6 +57,12 @@
                     </div>
                     
                     <div id="resultado" class="flex-grow-1"></div>
+                    
+                    <div class="d-flex justify-content-end mt-3">
+                        <button id="exportarBtn" class="btn btn-success btn-sm" style="display:none;" onclick="exportarImagen()">
+                            📷 Exportar como Imagen
+                        </button>
+                    </div>
                     
                     <div id="estadoInicial" class="hidden text-center text-muted flex-grow-1 d-flex align-items-center justify-content-center">
                         <div>
