@@ -4,16 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Grupos Aleatorios</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/pulse/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-light vh-100 p-2">
-
-<!-- Indicador de funcionalidad oculta -->
-<div id="keyboardHint" class="position-fixed" style="top: 10px; right: 10px; z-index: 1000; opacity: 0.6; font-size: 12px; color: #6c757d; cursor: help;" title="Presiona Ctrl + Shift + R para mostrar opciones avanzadas">
-    ⌨️ Ctrl+Shift+R
-</div>
 
 <div class="container-fluid h-100">
     <div class="row h-100 g-2">
@@ -38,7 +33,7 @@ Ana Martínez"></textarea>
                         <div class="mb-3">
                             <label for="archivoPersonas" class="form-label">O cargar desde archivo de texto</label>
                             <input type="file" id="archivoPersonas" accept=".txt" class="form-control">
-                            <div class="form-text">Selecciona un archivo .txt con una persona por línea</div>
+                            <div class="form-text legend-text">Selecciona un archivo .txt con una persona por línea</div>
                             <div id="archivoInfo" class="mt-2 text-success fw-bold" style="display:none;">
                                 <i class="fas fa-check-circle me-1"></i>
                                 <span id="nombreArchivo"></span>
@@ -63,7 +58,7 @@ Ana Martínez"></textarea>
                                     <input type="number" id="personasPorGrupo" min="1" value="3" class="form-control" style="width: 80px;">
                                 </div>
                             </div>
-                            <div class="form-text">Los grupos tendrán al menos esta cantidad de personas</div>
+                            <div class="form-text legend-text">Los grupos tendrán al menos esta cantidad de personas</div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mt-auto">Generar Grupos</button>
                     </form>

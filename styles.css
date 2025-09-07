@@ -1,3 +1,9 @@
 .hidden { 
     display: none !important; 
 }
+
+/* Tamaño personalizable para textos de leyenda */
+.legend-text {
+    font-size: 0.700rem; /* Equivalente a small de Bootstrap */
+    color: #6c757d;
+}

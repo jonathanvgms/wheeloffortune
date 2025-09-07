@@ -17,12 +17,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const textarea = document.getElementById('personas');
                 textarea.value = contenido.trim();
                 
-                // Mostrar información del archivo cargado
-                document.getElementById('nombreArchivo').textContent = `Archivo cargado: ${archivo.name}`;
-                document.getElementById('archivoInfo').style.display = 'block';
+                // NO mostrar el mensaje verde de confirmación
+                // document.getElementById('nombreArchivo').textContent = `Archivo cargado: ${archivo.name}`;
+                // document.getElementById('archivoInfo').style.display = 'block';
                 
-                // Limpiar el input file después de cargar
-                document.getElementById('archivoPersonas').value = '';
+                // NO limpiar el input file para mantener el nombre visible
+                // document.getElementById('archivoPersonas').value = '';
             };
             reader.readAsText(archivo);
         } else if (archivo) {
@@ -237,7 +237,6 @@ function mostrarBotonExportar(mostrar) {
 function toggleBotonRestricciones() {
     const boton = document.getElementById('btnRestricciones');
     const estaOculto = boton.classList.contains('hidden');
-    const hint = document.getElementById('keyboardHint');
     
     if (estaOculto) {
         boton.classList.remove('hidden');
@@ -250,15 +249,6 @@ function toggleBotonRestricciones() {
         
         // Mostrar notificación temporal
         mostrarNotificacionRestricciones('🔧 Botón de restricciones activado!', 'success');
-        
-        // Ocultar el hint después del primer uso
-        if (hint) {
-            hint.style.transition = 'opacity 1s ease';
-            hint.style.opacity = '0';
-            setTimeout(() => {
-                hint.style.display = 'none';
-            }, 1000);
-        }
     } else {
         boton.classList.add('hidden');
         mostrarNotificacionRestricciones('🔒 Botón de restricciones oculto', 'info');
