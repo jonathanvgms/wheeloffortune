@@ -65,6 +65,28 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarListasPersonas();
         mostrarRestricciones();
     });
+    
+    // Funcionalidad de teclas para mostrar/ocultar botón de restricciones
+    let keysPressed = new Set();
+    
+    document.addEventListener('keydown', function(e) {
+        keysPressed.add(e.key);
+        
+        // Verificar combinación Ctrl + Shift + R
+        if (keysPressed.has('Control') && keysPressed.has('Shift') && keysPressed.has('R')) {
+            e.preventDefault();
+            toggleBotonRestricciones();
+        }
+    });
+    
+    document.addEventListener('keyup', function(e) {
+        keysPressed.delete(e.key);
+    });
+    
+    // Limpiar teclas presionadas cuando la ventana pierde el foco
+    window.addEventListener('blur', function() {
+        keysPressed.clear();
+    });
 });
 
 document.getElementById('groupForm').addEventListener('submit', function(e) {
@@ -210,6 +232,78 @@ function mostrarEstadoInicial() {
 
 function mostrarBotonExportar(mostrar) {
     document.getElementById('exportarBtn').style.display = mostrar ? 'inline-block' : 'none';
+}
+
+function toggleBotonRestricciones() {
+    const boton = document.getElementById('btnRestricciones');
+    const estaOculto = boton.classList.contains('hidden');
+    const hint = document.getElementById('keyboardHint');
+    
+    if (estaOculto) {
+        boton.classList.remove('hidden');
+        // Mostrar una pequeña animación y notificación
+        boton.style.transform = 'scale(0.8)';
+        boton.style.transition = 'all 0.3s ease';
+        setTimeout(() => {
+            boton.style.transform = 'scale(1)';
+        }, 50);
+        
+        // Mostrar notificación temporal
+        mostrarNotificacionRestricciones('🔧 Botón de restricciones activado!', 'success');
+        
+        // Ocultar el hint después del primer uso
+        if (hint) {
+            hint.style.transition = 'opacity 1s ease';
+            hint.style.opacity = '0';
+            setTimeout(() => {
+                hint.style.display = 'none';
+            }, 1000);
+        }
+    } else {
+        boton.classList.add('hidden');
+        mostrarNotificacionRestricciones('🔒 Botón de restricciones oculto', 'info');
+    }
+}
+
+function mostrarNotificacionRestricciones(mensaje, tipo) {
+    // Crear notificación temporal
+    const notificacion = document.createElement('div');
+    notificacion.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 9999;
+        transform: translateX(400px);
+        transition: all 0.4s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    
+    // Color según tipo
+    if (tipo === 'success') {
+        notificacion.style.backgroundColor = '#198754';
+    } else if (tipo === 'info') {
+        notificacion.style.backgroundColor = '#0dcaf0';
+    }
+    
+    notificacion.textContent = mensaje;
+    document.body.appendChild(notificacion);
+    
+    // Animar entrada
+    setTimeout(() => {
+        notificacion.style.transform = 'translateX(0)';
+    }, 50);
+    
+    // Remover después de 3 segundos
+    setTimeout(() => {
+        notificacion.style.transform = 'translateX(400px)';
+        setTimeout(() => {
+            document.body.removeChild(notificacion);
+        }, 400);
+    }, 3000);
 }
 
 function exportarImagen() {

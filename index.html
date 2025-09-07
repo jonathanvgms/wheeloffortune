@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="bg-light vh-100 p-2">
+
+<!-- Indicador de funcionalidad oculta -->
+<div id="keyboardHint" class="position-fixed" style="top: 10px; right: 10px; z-index: 1000; opacity: 0.6; font-size: 12px; color: #6c757d; cursor: help;" title="Presiona Ctrl + Shift + R para mostrar opciones avanzadas">
+    ⌨️ Ctrl+Shift+R
+</div>
+
 <div class="container-fluid h-100">
     <div class="row h-100 g-2">
         <!-- Panel izquierdo: Configuración -->
@@ -19,7 +25,7 @@
                         <div class="mb-3 flex-grow-1 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label for="personas" class="form-label mb-0">Listado de personas (una por línea)</label>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#restriccionesModal">
+                                <button type="button" id="btnRestricciones" class="btn btn-outline-secondary btn-sm hidden" data-bs-toggle="modal" data-bs-target="#restriccionesModal">
                                     ⚙️
                                 </button>
                             </div>
@@ -39,12 +45,24 @@ Ana Martínez"></textarea>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="numGrupos" class="form-label">Cantidad de grupos</label>
-                            <input type="number" id="numGrupos" min="1" value="6" class="form-control">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <label for="numGrupos" class="form-label mb-0">Cantidad de grupos</label>
+                                </div>
+                                <div class="col-auto">
+                                    <input type="number" id="numGrupos" min="1" value="6" class="form-control" style="width: 80px;">
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="personasPorGrupo" class="form-label">Personas mínimas por grupo</label>
-                            <input type="number" id="personasPorGrupo" min="1" value="3" class="form-control">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <label for="personasPorGrupo" class="form-label mb-0">Personas mínimas por grupo</label>
+                                </div>
+                                <div class="col-auto">
+                                    <input type="number" id="personasPorGrupo" min="1" value="3" class="form-control" style="width: 80px;">
+                                </div>
+                            </div>
                             <div class="form-text">Los grupos tendrán al menos esta cantidad de personas</div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mt-auto">Generar Grupos</button>
