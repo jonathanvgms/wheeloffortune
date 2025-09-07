@@ -17,8 +17,17 @@
                 <div class="card-body flex-grow-1 d-flex flex-column">
                     <form id="groupForm" autocomplete="off" class="flex-grow-1 d-flex flex-column">
                         <div class="mb-3 flex-grow-1 d-flex flex-column">
-                            <label for="personas" class="form-label">Listado de personas (una por línea)</label>
-                            <textarea id="personas" required class="form-control flex-grow-1" style="resize:none;min-height:200px;"></textarea>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="personas" class="form-label mb-0">Listado de personas (una por línea)</label>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#restriccionesModal">
+                                    ⚙️
+                                </button>
+                            </div>
+                            <textarea id="personas" required class="form-control flex-grow-1" style="resize:none;min-height:200px;" 
+                                placeholder="Juan Pérez
+María González
+Carlos López
+Ana Martínez"></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="archivoPersonas" class="form-label">O cargar desde archivo de texto</label>
@@ -34,8 +43,9 @@
                             <input type="number" id="numGrupos" min="1" value="6" class="form-control">
                         </div>
                         <div class="mb-3">
-                            <label for="personasPorGrupo" class="form-label">Personas por grupo</label>
+                            <label for="personasPorGrupo" class="form-label">Personas mínimas por grupo</label>
                             <input type="number" id="personasPorGrupo" min="1" value="3" class="form-control">
+                            <div class="form-text">Los grupos tendrán al menos esta cantidad de personas</div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 mt-auto">Generar Grupos</button>
                     </form>
@@ -75,6 +85,112 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de Restricciones -->
+<div class="modal fade" id="restriccionesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">⚙️ Configurar Restricciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Pestañas -->
+                <ul class="nav nav-tabs" id="restriccionesTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab">
+                            ✏️ Manual
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="importar-tab" data-bs-toggle="tab" data-bs-target="#importar" type="button" role="tab">
+                            📂 Importar
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content mt-3" id="restriccionesTabContent">
+                    <!-- Pestaña Manual -->
+                    <div class="tab-pane fade show active" id="manual" role="tabpanel">
+                        <p class="text-muted mb-3">Define qué personas NO pueden estar en el mismo grupo.</p>
+                        
+                        <div id="restriccionesList" class="mb-3">
+                            <!-- Las restricciones se mostrarán aquí -->
+                        </div>
+                        
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Agregar nueva restricción:</h6>
+                                <div class="row">
+                                    <div class="col-5">
+                                        <select id="persona1" class="form-select">
+                                            <option value="">Seleccionar persona...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-2 text-center align-self-center">
+                                        <strong>NO CON</strong>
+                                    </div>
+                                    <div class="col-5">
+                                        <select id="persona2" class="form-select">
+                                            <option value="">Seleccionar persona...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="agregarRestriccion()">
+                                        ➕ Agregar Restricción
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pestaña Importar -->
+                    <div class="tab-pane fade" id="importar" role="tabpanel">
+                        <p class="text-muted mb-3">Importa restricciones desde un archivo de texto.</p>
+                        
+                        <div class="card bg-info bg-opacity-10 border-info mb-3">
+                            <div class="card-body">
+                                <h6 class="card-title">📝 Formato del archivo:</h6>
+                                <p class="card-text small mb-2">Cada línea debe tener el formato:</p>
+                                <code>Persona1 | Persona2</code>
+                                <p class="card-text small mt-2 mb-0">
+                                    <strong>Ejemplo:</strong><br>
+                                    <code>Juan Pérez | María González</code><br>
+                                    <code>Carlos López | Ana Martínez</code>
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="archivoRestricciones" class="form-label">Seleccionar archivo de restricciones</label>
+                            <input type="file" id="archivoRestricciones" accept=".txt" class="form-control">
+                            <div class="form-text">Archivo .txt con restricciones (una por línea)</div>
+                        </div>
+                        
+                        <div id="archivoRestriccionesInfo" class="mt-2 text-success fw-bold" style="display:none;">
+                            <i class="fas fa-check-circle me-1"></i>
+                            <span id="nombreArchivoRestricciones"></span>
+                        </div>
+                        
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-outline-success" onclick="exportarRestricciones()">
+                                💾 Exportar Restricciones Actuales
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" onclick="limpiarRestricciones()">
+                    🗑️ Limpiar Todo
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="script.js"></script>
 </body>

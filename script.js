@@ -1,5 +1,8 @@
 console.log('Script cargado correctamente');
 
+// Variable global para restricciones
+let restricciones = new Map();
+
 // Mostrar estado inicial al cargar
 document.addEventListener('DOMContentLoaded', function() {
     mostrarEstadoInicial();
@@ -27,6 +30,41 @@ document.addEventListener('DOMContentLoaded', function() {
             e.target.value = '';
         }
     });
+    
+    // Manejar cambio en el archivo de restricciones
+    document.getElementById('archivoRestricciones').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (!file) {
+            document.getElementById('archivoRestriccionesInfo').style.display = 'none';
+            return;
+        }
+        
+        // Mostrar información del archivo
+        document.getElementById('nombreArchivoRestricciones').textContent = `Archivo seleccionado: ${file.name}`;
+        document.getElementById('archivoRestriccionesInfo').style.display = 'block';
+        
+        // Leer y procesar archivo
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            try {
+                procesarArchivoRestricciones(event.target.result);
+            } catch (error) {
+                alert('Error al procesar el archivo: ' + error.message);
+                console.error('Error:', error);
+            }
+        };
+        reader.readAsText(file);
+    });
+    
+    // Actualizar listas cuando cambie el textarea
+    document.getElementById('personas').addEventListener('input', actualizarListasPersonas);
+    
+    // Mostrar modal de restricciones
+    document.getElementById('restriccionesModal').addEventListener('show.bs.modal', function() {
+        actualizarListasPersonas();
+        mostrarRestricciones();
+    });
 });
 
 document.getElementById('groupForm').addEventListener('submit', function(e) {
@@ -34,7 +72,7 @@ document.getElementById('groupForm').addEventListener('submit', function(e) {
     const personasRaw = document.getElementById('personas').value.trim();
     let personas = personasRaw.split('\n').map(p => p.trim()).filter(p => p.length > 0);
     const numGrupos = parseInt(document.getElementById('numGrupos').value, 10);
-    const personasPorGrupo = parseInt(document.getElementById('personasPorGrupo').value, 10);
+    const personasMinPorGrupo = parseInt(document.getElementById('personasPorGrupo').value, 10);
 
     if (personas.length === 0) {
         mostrarResultado('<div class="alert alert-danger text-center">Ingrese al menos una persona.</div>');
@@ -42,14 +80,14 @@ document.getElementById('groupForm').addEventListener('submit', function(e) {
         mostrarEstadoInicial();
         return;
     }
-    if (numGrupos < 1 || personasPorGrupo < 1) {
+    if (numGrupos < 1 || personasMinPorGrupo < 1) {
         mostrarResultado('<div class="alert alert-danger text-center">Los valores deben ser mayores a cero.</div>');
         mostrarBotonExportar(false);
         mostrarEstadoInicial();
         return;
     }
-    if (numGrupos * personasPorGrupo > personas.length) {
-        mostrarResultado('<div class="alert alert-danger text-center">No hay suficientes personas para la configuración elegida.</div>');
+    if (numGrupos * personasMinPorGrupo > personas.length) {
+        mostrarResultado('<div class="alert alert-danger text-center">No hay suficientes personas para garantizar el mínimo por grupo.</div>');
         mostrarBotonExportar(false);
         mostrarEstadoInicial();
         return;
@@ -60,25 +98,23 @@ document.getElementById('groupForm').addEventListener('submit', function(e) {
     mostrarBotonExportar(false);
     ocultarEstadoInicial();
     setTimeout(() => {
-        let personasMezcladas = mezclarArray([...personas]);
-        let grupos = [];
-        let idx = 0;
-        for (let i = 0; i < numGrupos; i++) {
-            let grupo = [];
-            for (let j = 0; j < personasPorGrupo && idx < personasMezcladas.length; j++) {
-                grupo.push(personasMezcladas[idx++]);
-            }
-            grupos.push(grupo);
+        try {
+            const grupos = armarGruposConRestricciones(personas, numGrupos, personasMinPorGrupo, restricciones);
+            
+            // Mostrar grupos en la consola
+            mostrarGruposEnConsola(grupos);
+            
+            mostrarAnimacionIntriga(false);
+            mostrarResultado(renderizarGrupos(grupos, true));
+            mostrarBotonExportar(true);
+            ocultarEstadoInicial();
+        } catch (error) {
+            mostrarAnimacionIntriga(false);
+            mostrarResultado(`<div class="alert alert-danger text-center">Error: ${error.message}</div>`);
+            mostrarBotonExportar(false);
+            ocultarEstadoInicial();
         }
-        let restante = personasMezcladas.slice(idx);
-        for (let i = 0; i < restante.length; i++) {
-            grupos[i % grupos.length].push(restante[i]);
-        }
-        mostrarAnimacionIntriga(false);
-        mostrarResultado(renderizarGrupos(grupos, true));
-        mostrarBotonExportar(true);
-        ocultarEstadoInicial();
-    }, 1600 + Math.random() * 900); // 1.6 a 2.5 seg de "intriga viteh"
+    }, 1600 + Math.random() * 900);
 });
 
 function mezclarArray(array) {
@@ -87,6 +123,37 @@ function mezclarArray(array) {
         [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
+}
+
+function mostrarGruposEnConsola(grupos) {
+    console.log('🎯 GRUPOS GENERADOS ALEATORIAMENTE');
+    console.log('=====================================');
+    
+    grupos.forEach((grupo, idx) => {
+        console.log(`📋 Grupo ${idx + 1} (${grupo.length} personas):`);
+        grupo.forEach((persona, personaIdx) => {
+            console.log(`  ${personaIdx + 1}. ${persona}`);
+        });
+        console.log(''); // Línea en blanco entre grupos
+    });
+    
+    console.log('=====================================');
+    console.log(`✅ Total de grupos: ${grupos.length}`);
+    console.log(`👥 Total de personas: ${grupos.reduce((total, grupo) => total + grupo.length, 0)}`);
+    
+    // Mostrar estadísticas de distribución
+    const tamaños = grupos.map(grupo => grupo.length);
+    const min = Math.min(...tamaños);
+    const max = Math.max(...tamaños);
+    const promedio = (tamaños.reduce((a, b) => a + b, 0) / tamaños.length).toFixed(1);
+    
+    console.log(`📊 Distribución: min ${min}, max ${max}, promedio ${promedio} personas por grupo`);
+    
+    // Mostrar también un formato más compacto
+    console.log('\n� RESUMEN COMPACTO:');
+    grupos.forEach((grupo, idx) => {
+        console.log(`Grupo ${idx + 1} (${grupo.length}): [${grupo.join(', ')}]`);
+    });
 }
 
 function renderizarGrupos(grupos, animar = false) {
@@ -177,4 +244,275 @@ function exportarImagen() {
         document.body.removeChild(contenedor);
         alert('Error al exportar imagen: ' + error.message);
     });
+}
+
+function actualizarListasPersonas() {
+    const personasText = document.getElementById('personas').value.trim();
+    const personas = personasText.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+    
+    const select1 = document.getElementById('persona1');
+    const select2 = document.getElementById('persona2');
+    
+    // Limpiar opciones
+    select1.innerHTML = '<option value="">Seleccionar persona...</option>';
+    select2.innerHTML = '<option value="">Seleccionar persona...</option>';
+    
+    // Agregar personas
+    personas.forEach(persona => {
+        select1.innerHTML += `<option value="${persona}">${persona}</option>`;
+        select2.innerHTML += `<option value="${persona}">${persona}</option>`;
+    });
+}
+
+function agregarRestriccion() {
+    const persona1 = document.getElementById('persona1').value;
+    const persona2 = document.getElementById('persona2').value;
+    
+    if (!persona1 || !persona2) {
+        alert('Selecciona ambas personas');
+        return;
+    }
+    
+    if (persona1 === persona2) {
+        alert('Una persona no puede tener restricción consigo misma');
+        return;
+    }
+    
+    // Agregar restricción bidireccional
+    if (!restricciones.has(persona1)) {
+        restricciones.set(persona1, new Set());
+    }
+    if (!restricciones.has(persona2)) {
+        restricciones.set(persona2, new Set());
+    }
+    
+    restricciones.get(persona1).add(persona2);
+    restricciones.get(persona2).add(persona1);
+    
+    // Limpiar selección
+    document.getElementById('persona1').value = '';
+    document.getElementById('persona2').value = '';
+    
+    mostrarRestricciones();
+}
+
+function mostrarRestricciones() {
+    const container = document.getElementById('restriccionesList');
+    
+    if (restricciones.size === 0) {
+        container.innerHTML = '<p class="text-muted text-center">No hay restricciones configuradas</p>';
+        return;
+    }
+    
+    let html = '<div class="alert alert-info"><strong>Restricciones activas:</strong></div>';
+    
+    const restriccionesArray = [];
+    restricciones.forEach((personas, persona) => {
+        personas.forEach(otraPersona => {
+            const restriccion = [persona, otraPersona].sort();
+            const restriccionStr = restriccion.join(' ↔ ');
+            if (!restriccionesArray.includes(restriccionStr)) {
+                restriccionesArray.push(restriccionStr);
+            }
+        });
+    });
+    
+    restriccionesArray.forEach(restriccion => {
+        const [p1, p2] = restriccion.split(' ↔ ');
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                <span><strong>${p1}</strong> ❌ <strong>${p2}</strong></span>
+                <button class="btn btn-outline-danger btn-sm" onclick="eliminarRestriccion('${p1}', '${p2}')">
+                    🗑️
+                </button>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function eliminarRestriccion(persona1, persona2) {
+    if (restricciones.has(persona1)) {
+        restricciones.get(persona1).delete(persona2);
+        if (restricciones.get(persona1).size === 0) {
+            restricciones.delete(persona1);
+        }
+    }
+    
+    if (restricciones.has(persona2)) {
+        restricciones.get(persona2).delete(persona1);
+        if (restricciones.get(persona2).size === 0) {
+            restricciones.delete(persona2);
+        }
+    }
+    
+    mostrarRestricciones();
+}
+
+function limpiarRestricciones() {
+    if (confirm('¿Estás seguro de que quieres eliminar todas las restricciones?')) {
+        restricciones.clear();
+        mostrarRestricciones();
+    }
+}
+
+// Procesar archivo de restricciones
+function procesarArchivoRestricciones(contenido) {
+    const lineas = contenido.split('\n').filter(linea => linea.trim() !== '');
+    let restriccionesImportadas = 0;
+    let errores = [];
+    
+    lineas.forEach((linea, index) => {
+        const lineaLimpia = linea.trim();
+        if (lineaLimpia === '') return;
+        
+        // Buscar el separador |
+        const partes = lineaLimpia.split('|');
+        if (partes.length !== 2) {
+            errores.push(`Línea ${index + 1}: Formato incorrecto. Use "Persona1 | Persona2"`);
+            return;
+        }
+        
+        const persona1 = partes[0].trim();
+        const persona2 = partes[1].trim();
+        
+        if (persona1 === '' || persona2 === '') {
+            errores.push(`Línea ${index + 1}: Nombres de personas no pueden estar vacíos`);
+            return;
+        }
+        
+        if (persona1 === persona2) {
+            errores.push(`Línea ${index + 1}: Una persona no puede tener restricción consigo misma`);
+            return;
+        }
+        
+        // Verificar si ya existe la restricción
+        const restriccionExiste = Array.from(restricciones.entries()).some(([p1, conjunto]) => {
+            return (p1 === persona1 && conjunto.has(persona2)) || 
+                   (p1 === persona2 && conjunto.has(persona1));
+        });
+        
+        if (!restriccionExiste) {
+            // Agregar restricción bidireccional
+            if (!restricciones.has(persona1)) {
+                restricciones.set(persona1, new Set());
+            }
+            if (!restricciones.has(persona2)) {
+                restricciones.set(persona2, new Set());
+            }
+            
+            restricciones.get(persona1).add(persona2);
+            restricciones.get(persona2).add(persona1);
+            restriccionesImportadas++;
+        }
+    });
+    
+    // Mostrar resultado
+    let mensaje = `✅ Se importaron ${restriccionesImportadas} restricciones correctamente.`;
+    
+    if (errores.length > 0) {
+        mensaje += `\n\n⚠️ Se encontraron ${errores.length} errores:\n` + errores.join('\n');
+    }
+    
+    alert(mensaje);
+    
+    // Actualizar la visualización de restricciones
+    mostrarRestricciones();
+    actualizarListasPersonas();
+}
+
+// Exportar restricciones actuales
+function exportarRestricciones() {
+    if (restricciones.size === 0) {
+        alert('No hay restricciones para exportar.');
+        return;
+    }
+    
+    let contenido = '';
+    const procesadas = new Set();
+    
+    // Generar contenido del archivo
+    for (const [persona1, conjunto] of restricciones.entries()) {
+        for (const persona2 of conjunto) {
+            // Evitar duplicados (ya que las restricciones son bidireccionales)
+            const clave = [persona1, persona2].sort().join('|');
+            if (!procesadas.has(clave)) {
+                contenido += `${persona1} | ${persona2}\n`;
+                procesadas.add(clave);
+            }
+        }
+    }
+    
+    // Crear y descargar archivo
+    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = 'restricciones_grupos.txt';
+    link.click();
+    
+    // Limpiar
+    window.URL.revokeObjectURL(link.href);
+}
+
+function armarGruposConRestricciones(personas, numGrupos, personasMinPorGrupo, restriccionesMap) {
+    const personasMezcladas = [...personas].sort(() => Math.random() - 0.5);
+    const grupos = Array.from({ length: numGrupos }, () => []);
+    
+    // Fase 1: Asegurar el mínimo por grupo
+    for (const persona of personasMezcladas.slice()) {
+        const personasRestringidas = restriccionesMap.get(persona) || new Set();
+        let asignado = false;
+        
+        // Buscar un grupo que necesite personas (por debajo del mínimo)
+        for (let i = 0; i < numGrupos && !asignado; i++) {
+            const grupo = grupos[i];
+            
+            // Solo asignar si el grupo aún no tiene el mínimo
+            if (grupo.length >= personasMinPorGrupo) continue;
+            
+            const hayConflicto = grupo.some(miembro => personasRestringidas.has(miembro));
+            
+            if (!hayConflicto) {
+                grupo.push(persona);
+                asignado = true;
+                // Remover de la lista para la siguiente fase
+                const index = personasMezcladas.indexOf(persona);
+                if (index > -1) personasMezcladas.splice(index, 1);
+            }
+        }
+    }
+    
+    // Fase 2: Distribuir personas restantes equitativamente
+    for (const persona of personasMezcladas) {
+        const personasRestringidas = restriccionesMap.get(persona) || new Set();
+        let asignado = false;
+        
+        // Ordenar grupos por cantidad de personas (menos personas primero)
+        const gruposOrdenados = grupos
+            .map((grupo, index) => ({ grupo, index, size: grupo.length }))
+            .sort((a, b) => a.size - b.size);
+        
+        // Intentar asignar al grupo con menos personas que no tenga conflictos
+        for (const { grupo, index } of gruposOrdenados) {
+            const hayConflicto = grupo.some(miembro => personasRestringidas.has(miembro));
+            
+            if (!hayConflicto) {
+                grupo.push(persona);
+                asignado = true;
+                break;
+            }
+        }
+        
+        // Si no se pudo asignar por restricciones, forzar en el grupo menos poblado
+        if (!asignado) {
+            const grupoMenosPoblado = grupos.reduce((min, grupo, index) => 
+                grupo.length < grupos[min].length ? index : min, 0
+            );
+            grupos[grupoMenosPoblado].push(persona);
+            console.warn(`⚠️ ${persona} fue asignado/a al Grupo ${grupoMenosPoblado + 1} ignorando restricciones por falta de opciones.`);
+        }
+    }
+    
+    return grupos;
 }
